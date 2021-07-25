@@ -1,0 +1,67 @@
+{
+  "name": "mergie-github-app",
+  "version": "1.0.1",
+  "main": "src/handler.js",
+  "license": "MIT",
+  "scripts": {
+    "deploy:env": "sls deploy --stage $NODE_ENV",
+    "deploy": "export NODE_ENV=dev && yarn deploy:env",
+    "deploy:prod": "export NODE_ENV=prod && yarn deploy:env",
+    "deploy:dev": "export NODE_ENV=dev && yarn deploy:env",
+    "lint": "eslint src --ext ts,js --no-ignore --fix",
+    "serve": "sls offline -P 4000",
+    "serve:watch": "nodemon -e js,ts,jsx,tsx -x yarn serve",
+    "tail:hello": "sls logs --function hello --tail",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "build": "sls webpack",
+    "watch:hello": "sls invoke local --watch --function hello --path fixtures/event.json"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.39",
+    "@types/jest": "^26.0.24",
+    "eslint": "^6.3.0",
+    "eslint-config-prettier": "^6.3.0",
+    "husky": "^4.0.2",
+    "jest": "^27.0.6",
+    "lint-staged": "^10.0.3",
+    "nodemon": "^2.0.0",
+    "prettier": "^2.0.0",
+    "serverless": "^1.51.0",
+    "serverless-dotenv-plugin": "^2.1.1",
+    "serverless-offline": "^5.10.1",
+    "serverless-plugin-warmup": "^4.7.0-rc.1",
+    "serverless-prune-plugin": "^1.4.1"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged && yarn test"
+    }
+  },
+  "lint-staged": {
+    "src/**/*.{js,ts}": [
+      "yarn lint",
+      "prettier --write",
+      "git add"
+    ]
+  },
+  "dependencies": {
+    "@bugsnag/core": "^7.10.0",
+    "@bugsnag/js": "^7.10.5",
+    "@bugsnag/plugin-aws-lambda": "^7.10.0",
+    "@octokit/auth-app": "^3.5.3",
+    "@octokit/request": "^5.6.0",
+    "@octokit/webhooks-types": "^4.1.0",
+    "@types/node-fetch": "^2.5.11",
+    "@typescript-eslint/eslint-plugin": "^4.28.3",
+    "@typescript-eslint/parser": "^4.28.3",
+    "aws-sdk": "^2.941.0",
+    "node-fetch": "^2.6.1",
+    "serverless-webpack": "^5.5.1",
+    "ts-jest": "^27.0.3",
+    "ts-loader": "^9.2.3",
+    "typescript": "^4.3.5",
+    "webpack": "^5.44.0",
+    "webpack-node-externals": "^3.0.0"
+  }
+}
