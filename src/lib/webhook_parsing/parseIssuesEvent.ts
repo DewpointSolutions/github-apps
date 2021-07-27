@@ -1,8 +1,8 @@
 import Bugsnag from "@bugsnag/js";
-import { PullRequestEvent } from "@octokit/webhooks-types";
+import { IssuesEvent } from "@octokit/webhooks-types";
 
-export interface ParsePullRequestEventResponse {
-  pullRequest: {
+export interface ParseIssuesEventResponse {
+  issue: {
     number: number;
     body: string;
   };
@@ -17,16 +17,16 @@ export interface ParsePullRequestEventResponse {
   };
 }
 
-export default function parsePullRequestEvent(
-  event: PullRequestEvent
-): ParsePullRequestEventResponse | null {
+export default function parseIssuesEvent(
+  event: IssuesEvent
+): ParseIssuesEventResponse | null {
   if (!event.installation?.id) {
     Bugsnag.notify(new Error("missing installation ID"));
     return null;
   }
 
   if (
-    (event.pull_request.labels || []).some(
+    (event.issue.labels || []).some(
       (label) => label.name === "SKIP_LOOM_UNFURL"
     )
   ) {
@@ -37,9 +37,9 @@ export default function parsePullRequestEvent(
   }
 
   return {
-    pullRequest: {
-      number: event.number,
-      body: event.pull_request.body || "",
+    issue: {
+      number: event.issue.number,
+      body: event.issue.body || "",
     },
     repository: {
       owner: {

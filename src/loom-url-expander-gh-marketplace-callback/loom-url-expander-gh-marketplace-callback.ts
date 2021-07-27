@@ -22,7 +22,7 @@ export const loomURLExpanderGHMarketplaceCallback = async (
   const slackInput = {
     unfurl_links: false,
     unfurl_media: false,
-    text: `${requestBody.action} - ${requestBody.marketplace_purchase?.plan.name}`,
+    text: `${requestBody.action} - ${requestBody.marketplace_purchase?.plan.name} - ${event.body}`,
     username: "marketplace",
     icon_emoji: ":smile:",
   };

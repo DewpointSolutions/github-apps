@@ -17,9 +17,11 @@ This will take a Loom URL such as https://www.loom.com/share/c973ee1b21044179877
 
 _NOTE: public repositories get upgraded to Premium automatically_
 
-- ...everthing in the Free plan, plus:
-- expend unlimited Loom URLs at once
-- configuration options
+- ...Everthing in the Free plan, plus:
+- Expand unlimited Loom URLs at once
+- Configuration options
+- Premium email support
+- Supports future development!
 
 And of course, future development and maintenence is funded by paid subscribers!
 
@@ -27,7 +29,7 @@ And of course, future development and maintenence is funded by paid subscribers!
 
 Configurations are only available on premium plans (paid and/or public repos). Currently, there is only one configuration available, but every new feature and/or configuration will be available to Premium plan users.
 
-- Apply the SKIP_LOOM_UNFURL label to any Github Pull Request
+- Apply the SKIP_LOOM_UNFURL label to any Github Pull Request or Issue to disable Loom URL expansions
 
 ### Self-hosted plan
 

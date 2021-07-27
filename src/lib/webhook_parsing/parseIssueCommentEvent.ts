@@ -1,9 +1,12 @@
 import Bugsnag from "@bugsnag/js";
-import { PullRequestEvent } from "@octokit/webhooks-types";
+import { IssueCommentEvent } from "@octokit/webhooks-types";
 
-export interface ParsePullRequestEventResponse {
-  pullRequest: {
+export interface ParseIssueCommentEventResponse {
+  issue: {
     number: number;
+  };
+  comment: {
+    id: number;
     body: string;
   };
   repository: {
@@ -17,16 +20,21 @@ export interface ParsePullRequestEventResponse {
   };
 }
 
-export default function parsePullRequestEvent(
-  event: PullRequestEvent
-): ParsePullRequestEventResponse | null {
+export default function parseIssueCommentEvent(
+  event: IssueCommentEvent
+): ParseIssueCommentEventResponse | null {
   if (!event.installation?.id) {
     Bugsnag.notify(new Error("missing installation ID"));
     return null;
   }
 
+  // action === "deleted" is an expected case
+  if (event.action !== "created" && event.action !== "edited") {
+    return null;
+  }
+
   if (
-    (event.pull_request.labels || []).some(
+    (event.issue.labels || []).some(
       (label) => label.name === "SKIP_LOOM_UNFURL"
     )
   ) {
@@ -37,9 +45,12 @@ export default function parsePullRequestEvent(
   }
 
   return {
-    pullRequest: {
-      number: event.number,
-      body: event.pull_request.body || "",
+    issue: {
+      number: event.issue.number,
+    },
+    comment: {
+      id: event.comment.id,
+      body: event.comment.body,
     },
     repository: {
       owner: {
@@ -48,7 +59,7 @@ export default function parsePullRequestEvent(
       name: event.repository.name,
     },
     installation: {
-      id: event.installation.id,
+      id: event.installation?.id || -999999,
     },
   };
 }
