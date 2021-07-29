@@ -8,9 +8,11 @@ import parsePullRequestEvent, {
 } from "../lib/webhook_parsing/parsePullRequestEvent";
 import { runWarm, successResponse } from "../utils";
 
+import AWS from "aws-sdk";
 import Bugsnag from "@bugsnag/js";
 import bugsnagHandler from "../utils/bugsnagHandler";
 import { createAppAuth } from "@octokit/auth-app";
+import { incrementStat } from "../dal/incrementStat";
 import parseIssueCommentEvent from "../lib/webhook_parsing/parseIssueCommentEvent";
 import { request } from "@octokit/request";
 import unfurlLoomURLsIntoGIFs from "./unfurlLoomURLsIntoGIFs";
@@ -20,6 +22,7 @@ export const loomURLExpander = async (
   {
     parsePullRequestEvent,
     parseIssuesEvent,
+    incrementStat,
   }: {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     parsePullRequestEvent: (
@@ -27,6 +30,7 @@ export const loomURLExpander = async (
     ) => ParsePullRequestEventResponse | null;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     parseIssuesEvent: (payload: IssuesEvent) => ParseIssuesEventResponse | null;
+    incrementStat: (name: string, add: number) => Promise<unknown>;
   }
 ): Promise<Response> => {
   if (!process.env.GITHUB_PRIVATE_KEY) {
@@ -110,6 +114,12 @@ export const loomURLExpander = async (
       });
     }
 
+    try {
+      await incrementStat("loom-urls-expanded", unfurling.numLoomURLsUnfurled);
+    } catch (err) {
+      console.error("failed to increment count: ", err);
+    }
+
     return successResponse({
       message: "issue or pull comment updated",
     });
@@ -154,6 +164,12 @@ export const loomURLExpander = async (
       return errorResponse({
         message: err.message,
       });
+    }
+
+    try {
+      await incrementStat("loom-urls-expanded", unfurling.numLoomURLsUnfurled);
+    } catch (err) {
+      console.error("failed to increment count: ", err);
     }
 
     return successResponse({
@@ -202,6 +218,12 @@ export const loomURLExpander = async (
       });
     }
 
+    try {
+      await incrementStat("loom-urls-expanded", unfurling.numLoomURLsUnfurled);
+    } catch (err) {
+      console.error("failed to increment count: ", err);
+    }
+
     return successResponse({
       message: "PR body updated",
     });
@@ -218,6 +240,11 @@ export const loomURLExpander = async (
 // have to put that boilerplate in your function.
 export default bugsnagHandler(
   runWarm((event: AWSLambda.APIGatewayEvent) =>
-    loomURLExpander(event, { parsePullRequestEvent, parseIssuesEvent })
+    loomURLExpander(event, {
+      parsePullRequestEvent,
+      parseIssuesEvent,
+      incrementStat: (name: string, add: number) =>
+        incrementStat({ ddb: new AWS.DynamoDB({}), name, add }),
+    })
   )
 );

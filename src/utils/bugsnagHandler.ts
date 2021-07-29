@@ -10,7 +10,7 @@ if (process.env.NODE_ENV !== "test") {
   Bugsnag.start({
     plugins: [BugsnagPluginAwsLambda],
     apiKey: "db16300ee8ae854fd07744831cf0fdb2",
-    releaseStage: process.env.STAGE,
+    releaseStage: process.env.BUGSNAG_RELEASE_STAGE,
   });
 
   const bugsnagPlugin = Bugsnag.getPlugin("awsLambda");

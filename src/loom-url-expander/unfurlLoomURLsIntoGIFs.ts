@@ -3,8 +3,10 @@ export const unfurlLoomURLsIntoGIFs = (
 ): {
   didMakeLoomPreviewChange: boolean;
   stringWithUnfurledLoomURLs: string;
+  numLoomURLsUnfurled: number;
 } => {
   let didMakeLoomPreviewChange = false;
+  let numLoomURLsUnfurled = 0;
   const lines = input
     .split("\r\n")
     .flatMap((line) => line.split("\n"))
@@ -36,15 +38,18 @@ export const unfurlLoomURLsIntoGIFs = (
         if (parts.length > 1) {
           // Preserve the first part of the line
           didMakeLoomPreviewChange = true;
+          numLoomURLsUnfurled += 1;
           return [parts[0].trim(), embeddedPreview].filter((line) => !!line);
         } else {
           // Replace line directly with the preview
           didMakeLoomPreviewChange = true;
+          numLoomURLsUnfurled += 1;
           return [embeddedPreview];
         }
       } else {
         // Append the preview
         didMakeLoomPreviewChange = true;
+        numLoomURLsUnfurled += 1;
         return [line, "\n", embeddedPreview];
       }
     });
@@ -52,6 +57,7 @@ export const unfurlLoomURLsIntoGIFs = (
   return {
     didMakeLoomPreviewChange,
     stringWithUnfurledLoomURLs: lines.join("\n"),
+    numLoomURLsUnfurled,
   };
 };
 
