@@ -24,6 +24,8 @@ yarn-error.log*
 # development stuff not checked in
 private/
 *.pem
+deploy-dev.sh
+deploy-prod.sh
 
 # Only visible to licensees
 serverless.yml

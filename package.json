@@ -3,11 +3,10 @@
   "version": "1.0.1",
   "main": "src/handler.js",
   "license": "MIT",
+  "engines": {
+    "node": "^14.15.0"
+  },
   "scripts": {
-    "deploy:env": "sls deploy --stage $NODE_ENV",
-    "deploy": "export NODE_ENV=dev && yarn deploy:env",
-    "deploy:prod": "export NODE_ENV=prod && yarn deploy:env",
-    "deploy:dev": "export NODE_ENV=dev && yarn deploy:env",
     "lint": "eslint src --ext ts,js --no-ignore --fix",
     "start": "SLS_DEBUG=* node --inspect ./node_modules/.bin/serverless offline --stage=local --httpsProtocol=./ --httpPort=4300",
     "serve:watch": "nodemon -e js,ts,jsx,tsx -x yarn serve",
