@@ -1,9 +1,5 @@
-import {
-  IssueCommentEvent,
-  PullRequestReviewCommentEvent,
-} from "@octokit/webhooks-types";
-
 import Bugsnag from "@bugsnag/js";
+import { IssueCommentEvent } from "@octokit/webhooks-types";
 
 export interface ParseIssueCommentEventResponse {
   comment: {
@@ -21,8 +17,8 @@ export interface ParseIssueCommentEventResponse {
   };
 }
 
-export default function parseIssueOrPullRequestCommentEvent(
-  event: IssueCommentEvent | PullRequestReviewCommentEvent
+export default function parseIssueCommentEvent(
+  event: IssueCommentEvent
 ): ParseIssueCommentEventResponse | null {
   if (!event.installation?.id) {
     Bugsnag.notify(new Error("missing installation ID"));
@@ -34,12 +30,7 @@ export default function parseIssueOrPullRequestCommentEvent(
     return null;
   }
 
-  const labels =
-    "issue" in event
-      ? event.issue.labels
-      : "pull_request" in event
-      ? event.pull_request.labels
-      : null;
+  const labels = event.issue.labels ?? [];
   if (!labels) {
     Bugsnag.notify(
       new Error("couldn't find labels, but we'll continue anyway")

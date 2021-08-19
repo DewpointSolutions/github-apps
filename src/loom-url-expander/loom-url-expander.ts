@@ -13,7 +13,8 @@ import Bugsnag from "@bugsnag/js";
 import bugsnagHandler from "../utils/bugsnagHandler";
 import { createAppAuth } from "@octokit/auth-app";
 import { incrementStat } from "../dal/incrementStat";
-import parseIssueOrPullRequestCommentEvent from "../lib/webhook_parsing/parseIssueOrPullRequestCommentEvent";
+import parseIssueCommentEvent from "../lib/webhook_parsing/parseIssueCommentEvent";
+import parsePullRequestReviewCommentEvent from "../lib/webhook_parsing/parsePullRequestReviewCommentEvent";
 import { request } from "@octokit/request";
 import unfurlLoomURLsIntoGIFs from "./unfurlLoomURLsIntoGIFs";
 
@@ -71,8 +72,8 @@ export const loomURLExpander = async (
     });
   };
 
-  if ("comment" in requestBody) {
-    const data = parseIssueOrPullRequestCommentEvent(requestBody);
+  if ("comment" in requestBody && "issue" in requestBody) {
+    const data = parseIssueCommentEvent(requestBody);
     if (!data) {
       return successResponse({
         message:
@@ -80,11 +81,11 @@ export const loomURLExpander = async (
       });
     }
 
-    console.log("parseIssueCommentEvent output: ", data);
+    console.log("issue comment output: ", data);
 
     if (!data) {
       return errorResponse({
-        message: "parseIssueCommentEvent failed",
+        message: "issue coment parsing failed",
       });
     }
 
@@ -92,7 +93,7 @@ export const loomURLExpander = async (
 
     if (!unfurling.didMakeLoomPreviewChange) {
       return successResponse({
-        message: "No changes to be made",
+        message: "no changes to be made to issue comment",
       });
     }
 
@@ -108,7 +109,7 @@ export const loomURLExpander = async (
         inputs
       );
     } catch (err) {
-      console.error(`errored with inputs: `, inputs, err);
+      console.error(`issue comment update errored with inputs: `, inputs, err);
       return errorResponse({
         message: err.message,
       });
@@ -123,7 +124,7 @@ export const loomURLExpander = async (
     return successResponse({
       message: "issue or pull comment updated",
     });
-  } else if ("issue" in requestBody) {
+  } else if ("issue" in requestBody && !("comment" in requestBody)) {
     const data = parseIssuesEvent(requestBody);
     if (!data) {
       return successResponse({
@@ -132,11 +133,11 @@ export const loomURLExpander = async (
       });
     }
 
-    console.log("parseIssuesEvent output: ", data);
+    console.log("issue body parsing output: ", data);
 
     if (!data) {
       return errorResponse({
-        message: "parseIssuesEvent failed",
+        message: "issue body parsing failed",
       });
     }
 
@@ -144,7 +145,7 @@ export const loomURLExpander = async (
 
     if (!unfurling.didMakeLoomPreviewChange) {
       return successResponse({
-        message: "No changes to be made",
+        message: "no changes to be made to issue body",
       });
     }
 
@@ -175,7 +176,59 @@ export const loomURLExpander = async (
     return successResponse({
       message: "issue body updated",
     });
-  } else if ("pull_request" in requestBody) {
+  } else if ("pull_request" in requestBody && "comment" in requestBody) {
+    const data = parsePullRequestReviewCommentEvent(requestBody);
+    if (!data) {
+      return successResponse({
+        message:
+          "returning early due to parsePullRequestReviewCommentEvent returning null (possibly expected case)",
+      });
+    }
+
+    console.log("pull request comment parse output: ", data);
+
+    if (!data) {
+      return errorResponse({
+        message: "pull request review comment parse failed",
+      });
+    }
+
+    const unfurling = unfurlLoomURLsIntoGIFs(data.comment.body);
+
+    if (!unfurling.didMakeLoomPreviewChange) {
+      return successResponse({
+        message: "no changes to be made to the pull request review comment",
+      });
+    }
+
+    const inputs = {
+      owner: data.repository.owner.login,
+      repo: data.repository.name,
+      comment_id: data.comment.id,
+      body: unfurling.stringWithUnfurledLoomURLs,
+    };
+    try {
+      await requestWithAuth({ installationId: data.installation.id })(
+        "PATCH /repos/{owner}/{repo}/pulls/comments/{comment_id}",
+        inputs
+      );
+    } catch (err) {
+      console.error(`errored with inputs: `, inputs, err);
+      return errorResponse({
+        message: err.message,
+      });
+    }
+
+    try {
+      await incrementStat("loom-urls-expanded", unfurling.numLoomURLsUnfurled);
+    } catch (err) {
+      console.error("failed to increment count: ", err);
+    }
+
+    return successResponse({
+      message: "pull request comment body updated",
+    });
+  } else if ("pull_request" in requestBody && !("comment" in requestBody)) {
     const data = parsePullRequestEvent(requestBody);
     if (!data) {
       return successResponse({
@@ -184,11 +237,11 @@ export const loomURLExpander = async (
       });
     }
 
-    console.log("parsePullRequestEvent output: ", data);
+    console.log("pull request body parse output: ", data);
 
     if (!data) {
       return errorResponse({
-        message: "parsePullRequestEvent failed",
+        message: "pull request body parse failed",
       });
     }
 
@@ -196,7 +249,7 @@ export const loomURLExpander = async (
 
     if (!unfurling.didMakeLoomPreviewChange) {
       return successResponse({
-        message: "No changes to be made",
+        message: "no changes to be made to the pull request body",
       });
     }
 
