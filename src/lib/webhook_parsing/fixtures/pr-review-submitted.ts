@@ -1,9 +1,9 @@
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck
 
-import { PullRequestReviewCommentCreatedEvent } from "@octokit/webhooks-types";
+import { PullRequestReviewCreatedEvent } from "@octokit/webhooks-types";
 
-const payload: PullRequestReviewCommentCreatedEvent = {
+const payload: PullRequestReviewCreatedEvent = {
   action: "submitted",
   review: {
     id: 732984907,

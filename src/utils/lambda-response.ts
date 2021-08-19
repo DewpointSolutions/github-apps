@@ -52,6 +52,7 @@ export function corsErrorResponse(json: JSON): Response {
 }
 
 export function successResponse(json: JSON): Response {
+  console.log("success response: ", json);
   return lambdaResponse({
     json,
     statusCode: 200,
@@ -59,6 +60,7 @@ export function successResponse(json: JSON): Response {
 }
 
 export function corsSuccessResponse(json: JSON): Response {
+  console.log("error response: ", json);
   return lambdaResponse({
     json,
     statusCode: 200,

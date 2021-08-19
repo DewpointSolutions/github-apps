@@ -1,10 +1,13 @@
-import Bugsnag from "@bugsnag/js";
 import { PullRequestReviewEvent } from "@octokit/webhooks-types";
+import bugsnagNotify from "../../utils/BugsnagNotify";
 
 export interface ParsePullRequestReviewEventResponse {
   review: {
     id: number;
     body: string | null;
+  };
+  pullRequest: {
+    number: number;
   };
   repository: {
     owner: {
@@ -17,19 +20,11 @@ export interface ParsePullRequestReviewEventResponse {
   };
 }
 
-export default function parseIssueOrPullRequestCommentEvent(
+export default function parsePullRequestReviewBodyEvent(
   event: PullRequestReviewEvent
 ): ParsePullRequestReviewEventResponse | null {
-  if (event.review) {
-    Bugsnag.notify(
-      new Error(
-        "bull request review bodies not yet supported... this is just a stub"
-      )
-    );
-  }
-
   if (!event.installation?.id) {
-    Bugsnag.notify(new Error("missing installation ID"));
+    bugsnagNotify(new Error("missing installation ID"));
     return null;
   }
 
@@ -40,9 +35,7 @@ export default function parseIssueOrPullRequestCommentEvent(
 
   const labels = event.pull_request.labels;
   if (!labels) {
-    Bugsnag.notify(
-      new Error("couldn't find labels, but we'll continue anyway")
-    );
+    bugsnagNotify(new Error("couldn't find labels, but we'll continue anyway"));
   }
 
   if ((labels || []).some((label) => label.name === "SKIP_LOOM_UNFURL")) {
@@ -56,6 +49,9 @@ export default function parseIssueOrPullRequestCommentEvent(
     review: {
       id: event.review.id,
       body: event.review.body,
+    },
+    pullRequest: {
+      number: event.pull_request.number,
     },
     repository: {
       owner: {

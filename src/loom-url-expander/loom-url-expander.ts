@@ -14,6 +14,7 @@ import bugsnagHandler from "../utils/bugsnagHandler";
 import { createAppAuth } from "@octokit/auth-app";
 import { incrementStat } from "../dal/incrementStat";
 import parseIssueCommentEvent from "../lib/webhook_parsing/parseIssueCommentEvent";
+import parsePullRequestReviewBodyEvent from "../lib/webhook_parsing/parsePullRequestReviewBodyEvent";
 import parsePullRequestReviewCommentEvent from "../lib/webhook_parsing/parsePullRequestReviewCommentEvent";
 import { request } from "@octokit/request";
 import unfurlLoomURLsIntoGIFs from "./unfurlLoomURLsIntoGIFs";
@@ -161,7 +162,7 @@ export const loomURLExpander = async (
         inputs
       );
     } catch (err) {
-      console.error(`errored with inputs: `, inputs, err);
+      console.error(`updating issue body errored with inputs: `, inputs, err);
       return errorResponse({
         message: err.message,
       });
@@ -213,7 +214,11 @@ export const loomURLExpander = async (
         inputs
       );
     } catch (err) {
-      console.error(`errored with inputs: `, inputs, err);
+      console.error(
+        `updating pull request review comments errored with inputs: `,
+        inputs,
+        err
+      );
       return errorResponse({
         message: err.message,
       });
@@ -227,6 +232,69 @@ export const loomURLExpander = async (
 
     return successResponse({
       message: "pull request comment body updated",
+    });
+  } else if ("pull_request" in requestBody && "review" in requestBody) {
+    const data = parsePullRequestReviewBodyEvent(requestBody);
+    if (!data) {
+      return successResponse({
+        message:
+          "returning early due to parsePullRequestEvent returning null (possibly expected case)",
+      });
+    }
+
+    console.log("pull request review body parse output: ", data);
+
+    if (!data) {
+      return errorResponse({
+        message: "pull request review body parse failed",
+      });
+    }
+
+    if (!data.review.body) {
+      return successResponse({
+        message: "returning early due to missing pull request review body",
+      });
+    }
+
+    const unfurling = unfurlLoomURLsIntoGIFs(data.review.body);
+
+    if (!unfurling.didMakeLoomPreviewChange) {
+      return successResponse({
+        message: "no changes to be made to the pull request review body",
+      });
+    }
+
+    const inputs = {
+      owner: data.repository.owner.login,
+      repo: data.repository.name,
+      pull_number: data.pullRequest.number,
+      review_id: data.review.id,
+      body: unfurling.stringWithUnfurledLoomURLs,
+    };
+    try {
+      await requestWithAuth({ installationId: data.installation.id })(
+        "PUT /repos/{owner}/{repo}/pulls/{pull_number}/reviews/{review_id}",
+        inputs
+      );
+    } catch (err) {
+      console.error(
+        `updating pull request review body errored with inputs: `,
+        inputs,
+        err
+      );
+      return errorResponse({
+        message: err.message,
+      });
+    }
+
+    try {
+      await incrementStat("loom-urls-expanded", unfurling.numLoomURLsUnfurled);
+    } catch (err) {
+      console.error("failed to increment count: ", err);
+    }
+
+    return successResponse({
+      message: "pull request review body updated",
     });
   } else if ("pull_request" in requestBody && !("comment" in requestBody)) {
     const data = parsePullRequestEvent(requestBody);
@@ -265,7 +333,11 @@ export const loomURLExpander = async (
         inputs
       );
     } catch (err) {
-      console.error(`errored with inputs: `, inputs, err);
+      console.error(
+        `updating pull request body errored with inputs: `,
+        inputs,
+        err
+      );
       return errorResponse({
         message: err.message,
       });
