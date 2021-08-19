@@ -2,6 +2,7 @@
 
 const nodeExternals = require("webpack-node-externals");
 const slsw = require("serverless-webpack");
+const { BugsnagSourceMapUploaderPlugin } = require("webpack-bugsnag-plugins");
 
 module.exports = {
   entry: slsw.lib.entries,
@@ -20,4 +21,12 @@ module.exports = {
   resolve: {
     extensions: [".tsx", ".ts", ".js", ".jsx"],
   },
+  plugins: [
+    new BugsnagSourceMapUploaderPlugin({
+      apiKey: "db16300ee8ae854fd07744831cf0fdb2",
+      overwrite: true,
+      publicPath: ".webpack",
+      appVersion: require("./package.json").version,
+    }),
+  ],
 };

@@ -11,6 +11,8 @@ if (process.env.NODE_ENV !== "test") {
     plugins: [BugsnagPluginAwsLambda],
     apiKey: "db16300ee8ae854fd07744831cf0fdb2",
     releaseStage: process.env.BUGSNAG_RELEASE_STAGE,
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    appVersion: require("../../package.json").version || "",
   });
 
   const bugsnagPlugin = Bugsnag.getPlugin("awsLambda");
