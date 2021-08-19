@@ -10,7 +10,7 @@
     "lint": "eslint src --ext ts,js --no-ignore --fix",
     "start": "SLS_DEBUG=* node --inspect ./node_modules/.bin/serverless offline --stage=local --httpsProtocol=./ --httpPort=4300",
     "serve:watch": "nodemon -e js,ts,jsx,tsx -x yarn serve",
-    "tail:hello": "sls logs --function hello --tail",
+    "tail:loom-url-expander:prod": "sls logs --function loom-url-expander --tail --stage prod",
     "test": "jest",
     "test:watch": "jest --watch",
     "build": "sls webpack",
