@@ -13,7 +13,7 @@ import Bugsnag from "@bugsnag/js";
 import bugsnagHandler from "../utils/bugsnagHandler";
 import { createAppAuth } from "@octokit/auth-app";
 import { incrementStat } from "../dal/incrementStat";
-import parseIssueCommentEvent from "../lib/webhook_parsing/parseIssueCommentEvent";
+import parseIssueOrPullRequestCommentEvent from "../lib/webhook_parsing/parseIssueOrPullRequestCommentEvent";
 import { request } from "@octokit/request";
 import unfurlLoomURLsIntoGIFs from "./unfurlLoomURLsIntoGIFs";
 
@@ -72,7 +72,7 @@ export const loomURLExpander = async (
   };
 
   if ("comment" in requestBody) {
-    const data = parseIssueCommentEvent(requestBody);
+    const data = parseIssueOrPullRequestCommentEvent(requestBody);
     if (!data) {
       return successResponse({
         message:

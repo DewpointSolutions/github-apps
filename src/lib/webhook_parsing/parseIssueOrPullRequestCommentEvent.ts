@@ -1,10 +1,11 @@
+import {
+  IssueCommentEvent,
+  PullRequestReviewCommentEvent,
+} from "@octokit/webhooks-types";
+
 import Bugsnag from "@bugsnag/js";
-import { IssueCommentEvent } from "@octokit/webhooks-types";
 
 export interface ParseIssueCommentEventResponse {
-  issue: {
-    number: number;
-  };
   comment: {
     id: number;
     body: string;
@@ -20,8 +21,8 @@ export interface ParseIssueCommentEventResponse {
   };
 }
 
-export default function parseIssueCommentEvent(
-  event: IssueCommentEvent
+export default function parseIssueOrPullRequestCommentEvent(
+  event: IssueCommentEvent | PullRequestReviewCommentEvent
 ): ParseIssueCommentEventResponse | null {
   if (!event.installation?.id) {
     Bugsnag.notify(new Error("missing installation ID"));
@@ -33,11 +34,19 @@ export default function parseIssueCommentEvent(
     return null;
   }
 
-  if (
-    (event.issue.labels || []).some(
-      (label) => label.name === "SKIP_LOOM_UNFURL"
-    )
-  ) {
+  const labels =
+    "issue" in event
+      ? event.issue.labels
+      : "pull_request" in event
+      ? event.pull_request.labels
+      : null;
+  if (!labels) {
+    Bugsnag.notify(
+      new Error("couldn't find labels, but we'll continue anyway")
+    );
+  }
+
+  if ((labels || []).some((label) => label.name === "SKIP_LOOM_UNFURL")) {
     console.log(
       "skipping Loom URL expansion because SKIP_LOOM_UNFURL is applied"
     );
@@ -45,9 +54,6 @@ export default function parseIssueCommentEvent(
   }
 
   return {
-    issue: {
-      number: event.issue.number,
-    },
     comment: {
       id: event.comment.id,
       body: event.comment.body,
