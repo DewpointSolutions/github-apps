@@ -4,7 +4,7 @@
   "main": "src/handler.js",
   "license": "MIT",
   "engines": {
-    "node": "^19"
+    "node": "^16"
   },
   "scripts": {
     "lint": "eslint src --ext ts,js --no-ignore --fix",
