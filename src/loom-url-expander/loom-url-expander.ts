@@ -1,5 +1,4 @@
 import { IssuesEvent, PullRequestEvent } from "@octokit/webhooks-types";
-import { Response, errorResponse } from "../utils/lambda-response";
 import parseIssuesEvent, {
   ParseIssuesEventResponse,
 } from "../lib/webhook_parsing/parseIssuesEvent";
@@ -7,16 +6,17 @@ import parsePullRequestEvent, {
   ParsePullRequestEventResponse,
 } from "../lib/webhook_parsing/parsePullRequestEvent";
 import { runWarm, successResponse } from "../utils";
+import { Response, errorResponse } from "../utils/lambda-response";
 
-import AWS from "aws-sdk";
 import Bugsnag from "@bugsnag/js";
-import bugsnagHandler from "../utils/bugsnagHandler";
 import { createAppAuth } from "@octokit/auth-app";
+import { request } from "@octokit/request";
+import AWS from "aws-sdk";
 import { incrementStat } from "../dal/incrementStat";
 import parseIssueCommentEvent from "../lib/webhook_parsing/parseIssueCommentEvent";
 import parsePullRequestReviewBodyEvent from "../lib/webhook_parsing/parsePullRequestReviewBodyEvent";
 import parsePullRequestReviewCommentEvent from "../lib/webhook_parsing/parsePullRequestReviewCommentEvent";
-import { request } from "@octokit/request";
+import bugsnagHandler from "../utils/bugsnagHandler";
 import unfurlLoomURLsIntoGIFs from "./unfurlLoomURLsIntoGIFs";
 
 export const loomURLExpander = async (
@@ -90,7 +90,7 @@ export const loomURLExpander = async (
       });
     }
 
-    const unfurling = unfurlLoomURLsIntoGIFs(data.comment.body);
+    const unfurling = await unfurlLoomURLsIntoGIFs(data.comment.body);
 
     if (!unfurling.didMakeLoomPreviewChange) {
       return successResponse({
@@ -142,7 +142,7 @@ export const loomURLExpander = async (
       });
     }
 
-    const unfurling = unfurlLoomURLsIntoGIFs(data.issue.body);
+    const unfurling = await unfurlLoomURLsIntoGIFs(data.issue.body);
 
     if (!unfurling.didMakeLoomPreviewChange) {
       return successResponse({
@@ -194,7 +194,7 @@ export const loomURLExpander = async (
       });
     }
 
-    const unfurling = unfurlLoomURLsIntoGIFs(data.comment.body);
+    const unfurling = await unfurlLoomURLsIntoGIFs(data.comment.body);
 
     if (!unfurling.didMakeLoomPreviewChange) {
       return successResponse({
@@ -256,7 +256,7 @@ export const loomURLExpander = async (
       });
     }
 
-    const unfurling = unfurlLoomURLsIntoGIFs(data.review.body);
+    const unfurling = await unfurlLoomURLsIntoGIFs(data.review.body);
 
     if (!unfurling.didMakeLoomPreviewChange) {
       return successResponse({
@@ -313,7 +313,7 @@ export const loomURLExpander = async (
       });
     }
 
-    const unfurling = unfurlLoomURLsIntoGIFs(data.pullRequest.body);
+    const unfurling = await unfurlLoomURLsIntoGIFs(data.pullRequest.body);
 
     if (!unfurling.didMakeLoomPreviewChange) {
       return successResponse({
