@@ -57,7 +57,7 @@
     "aws-sdk": "^2.941.0",
     "eslint": "^7.32.0",
     "eslint-config-prettier": "^8.3.0",
-    "node-fetch": "^2.6.1",
+    "node-fetch": "^2.6.7",
     "serverless": "^2.53.1",
     "serverless-dotenv-plugin": "^3.9.0",
     "serverless-offline": "^8.0.0",
